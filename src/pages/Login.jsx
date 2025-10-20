@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import logo from '../assets/logo.png'
 
 export default function Login(){
   const { login } = useAuth()
@@ -26,6 +27,7 @@ export default function Login(){
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md bg-white p-6 rounded shadow">
         <div className="text-center mb-4">
+          <img src={logo} alt="Logo" className="mx-auto mb-2 h-16 w-16" />
           <div className="text-2xl font-bold">Bag Bank Admin Panel</div>
           <div className="text-sm text-gray-500">Sign in to your account</div>
         </div>
