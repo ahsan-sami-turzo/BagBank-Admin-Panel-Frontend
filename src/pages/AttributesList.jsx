@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { listAttributes, createAttribute, updateAttribute, deleteAttribute } from '../api/attributes'
 import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Badge from '../components/Badge'
 import toast from 'react-hot-toast'
+import Pagination from '../components/Pagination'
+
+function debounce(fn, wait=300){
+  let t
+  return (...args)=>{ clearTimeout(t); t = setTimeout(()=>fn(...args), wait) }
+}
 
 function formatDate(d){ return new Date(d).toLocaleString() }
 
@@ -106,8 +112,12 @@ export default function AttributesList(){
         </table>
       </div>
 
+      <div className="mt-2">
+        <Pagination page={page} total={total} pageSize={pageSize} onPageChange={setPage} />
+      </div>
+
       <Modal open={modalOpen} title={editing && editing.id? 'Edit' : 'Create'} onClose={()=>setModalOpen(false)}>
-        <AttributeForm editing={editing} onChange={setEditing} onSubmit={()=>save({ name: (editing.name||'').trim(), is_active: !!editing.is_active })} onCancel={()=>setModalOpen(false)} />
+        <AttributeForm editing={editing} onChange={setEditing} onSubmit={()=>save({ name: (editing.name||'').trim(), is_active: !!editing.is_active, hex: editing.hex?.trim?.(), rgb: editing.rgb?.trim?.() })} onCancel={()=>setModalOpen(false)} type={type} />
       </Modal>
 
       <ConfirmDialog open={confirmOpen} title="Delete" message={`Delete ${toDelete?.name}?`} onCancel={()=>setConfirmOpen(false)} onConfirm={doDelete} />
@@ -115,14 +125,26 @@ export default function AttributesList(){
   )
 }
 
-function AttributeForm({ editing, onChange, onSubmit, onCancel }){
+function AttributeForm({ editing, onChange, onSubmit, onCancel, type }){
   if (!editing) return null
   return (
-    <form onSubmit={e=>{ e.preventDefault(); onSubmit() }} className="space-y-3">
+    <form onSubmit={e=>{ e.preventDefault(); const name = (editing.name||'').trim(); if (!name){ toast.error('Name is required'); return } onSubmit() }} className="space-y-3">
       <div>
         <label className="block text-sm">Name</label>
         <input value={editing.name} onChange={e=>onChange({...editing, name: e.target.value})} className="w-full border p-2 rounded" />
       </div>
+      {type === 'colors' && (
+        <>
+          <div>
+            <label className="block text-sm">Hex Code</label>
+            <input value={editing.hex || ''} onChange={e=>onChange({...editing, hex: e.target.value.trim()})} className="w-full border p-2 rounded" placeholder="#FFFFFF" />
+          </div>
+          <div>
+            <label className="block text-sm">RGB</label>
+            <input value={editing.rgb || ''} onChange={e=>onChange({...editing, rgb: e.target.value.trim()})} className="w-full border p-2 rounded" placeholder="255,255,255" />
+          </div>
+        </>
+      )}
       <div className="flex items-center gap-2">
         <input type="checkbox" checked={!!editing.is_active} onChange={e=>onChange({...editing, is_active: e.target.checked})} />
         <label className="text-sm">Is Active</label>

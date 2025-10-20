@@ -4,6 +4,7 @@ import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Badge from '../components/Badge'
 import toast from 'react-hot-toast'
+import Pagination from '../components/Pagination'
 
 function formatDate(d){ return d ? new Date(d).toLocaleString() : '' }
 
@@ -36,8 +37,16 @@ export default function SuppliersList(){
 
   const save = async (payload)=>{
     try{
-      if (editing && editing.id){ await updateSupplier(editing.id, payload); toast.success('Updated') }
-      else { await createSupplier(payload); toast.success('Created') }
+      const body = {
+        ...payload,
+        name: (payload.name||'').trim(),
+        email: payload.email? payload.email.trim() : undefined,
+        phone: payload.phone? payload.phone.trim() : undefined
+      }
+      if (!body.name) { toast.error('Name is required'); return }
+      if (body.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) { toast.error('Invalid email'); return }
+      if (editing && editing.id){ await updateSupplier(editing.id, body); toast.success('Updated') }
+      else { await createSupplier(body); toast.success('Created') }
       setModalOpen(false)
       load()
     }catch(e){ toast.error('Save failed') }
@@ -108,6 +117,10 @@ export default function SuppliersList(){
       <Modal open={modalOpen} title={editing && editing.id? 'Edit Supplier' : 'Create Supplier'} onClose={()=>setModalOpen(false)}>
         <SupplierForm editing={editing} onChange={setEditing} onSubmit={()=>save(editing)} onCancel={()=>setModalOpen(false)} />
       </Modal>
+
+      <div className="mt-2">
+        <Pagination page={page} total={/* unknown total, backend should return */ 0} pageSize={pageSize} onPageChange={setPage} />
+      </div>
 
       <ConfirmDialog open={confirmOpen} title="Delete" message={`Delete ${toDelete?.name}?`} onCancel={()=>setConfirmOpen(false)} onConfirm={doDelete} />
     </div>
