@@ -13,3 +13,4 @@ export default function Header(){
     </header>
   )
 }
+// Header component removed; use Navbar instead.
